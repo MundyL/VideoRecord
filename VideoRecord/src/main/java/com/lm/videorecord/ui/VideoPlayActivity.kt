@@ -32,6 +32,9 @@ class VideoPlayActivity:AppCompatActivity() {
         }else{
             finish()
         }
+        ivBack.setOnClickListener {
+            finish()
+        }
         btnCheck.setOnClickListener {
             var intent=Intent()
             intent.putExtra("path",path)

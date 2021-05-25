@@ -52,6 +52,9 @@ class VideoListActivity:AppCompatActivity() {
         setContentView(R.layout.activity_vr_video_list)
         rv=findViewById(R.id.rv)
         ivBack=findViewById(R.id.iv_back)
+        ivBack.setOnClickListener {
+            finish()
+        }
         permissionUtils = PermissionUtils(this)
         if (!permissionUtils!!.checkPermission(PERMISSIONS)) {
             permissionUtils!!.requestPermissions()
