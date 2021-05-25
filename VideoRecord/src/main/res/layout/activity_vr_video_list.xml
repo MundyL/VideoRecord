@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <View
+        android:id="@+id/v_navi"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="#FEE101"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_back"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_vr_back"
+        android:scaleType="center"
+        app:layout_constraintTop_toTopOf="@+id/v_navi"
+        app:layout_constraintStart_toStartOf="@+id/v_navi"
+        app:layout_constraintBottom_toBottomOf="@+id/v_navi"
+        />
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="#000"
+        android:text="视频列表"
+        app:layout_constraintTop_toTopOf="@+id/v_navi"
+        app:layout_constraintBottom_toBottomOf="@+id/v_navi"
+        app:layout_constraintStart_toStartOf="@+id/v_navi"
+        app:layout_constraintEnd_toEndOf="@+id/v_navi"
+        />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@+id/v_navi"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

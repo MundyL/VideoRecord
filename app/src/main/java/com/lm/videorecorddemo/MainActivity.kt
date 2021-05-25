@@ -4,7 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
-import com.lm.videorecord.VideoRecorderActivity
+import com.lm.videorecord.ui.VideoListActivity
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btn).setOnClickListener {
             val intent = Intent()
-            intent.setClass(this, VideoRecorderActivity::class.java)
+            intent.setClass(this, VideoListActivity::class.java)
             startActivityForResult(intent, 1)
         }
 

@@ -9,9 +9,8 @@
 
     <application>
 
-        <activity android:name=".VideoRecorderActivity"
+        <activity android:name=".ui.VideoListActivity"
             android:screenOrientation="portrait"
             />
-
     </application>
 </manifest>
