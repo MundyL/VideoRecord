@@ -1,72 +1,200 @@
 package com.lm.videorecord.ui
 
+import android.Manifest
+import android.R.attr
+import android.content.Intent
+import android.database.Cursor
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.View
+import android.widget.ImageView
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.lm.videorecord.R
+import com.lm.videorecord.VideoRecordHelper
 import com.lm.videorecord.adapter.VideoAdapter
 import com.lm.videorecord.bean.VideoBean
+import com.lm.videorecord.compress.VideoCompress
+import com.lm.videorecord.utils.FileUtil
+import com.lm.videorecord.utils.PermissionUtils
+import java.util.*
+
 
 class VideoListActivity:AppCompatActivity() {
 
 
+    companion object{
+        const val CODE_RECORD=1
+        const val CODE_CHOICE=2
+    }
+
+    //动态权限
+    //6.0之后读写权限要同时申请
+    val PERMISSIONS = arrayOf(
+        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.CAMERA,
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
+    private var permissionUtils: PermissionUtils? = null
     private lateinit var rv:RecyclerView
+    private lateinit var ivBack:ImageView
     private var listVideo= mutableListOf<VideoBean>()
     private lateinit var adapter:VideoAdapter
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_vr_video_list)
         rv=findViewById(R.id.rv)
-        initData()
+        ivBack=findViewById(R.id.iv_back)
+        permissionUtils = PermissionUtils(this)
+        if (!permissionUtils!!.checkPermission(PERMISSIONS)) {
+            permissionUtils!!.requestPermissions()
+        } else {
+            initData()
+        }
     }
+
+
 
     private fun initData(){
         listVideo.addAll(getVideoList())
+        listVideo.forEach {
+            Log.d("lm", "${it}")
+        }
         adapter= VideoAdapter(listVideo)
-        rv.layoutManager=GridLayoutManager(this,2)
+        rv.layoutManager=GridLayoutManager(this, 2)
         rv.adapter=adapter
         adapter.setOnItemClickListener { adapter, view, position ->
-            Log.d("lm",listVideo[position].thumbImg)
+            if (position==0){
+                startRecord()
+            }else{
+                val intent=Intent(this, VideoPlayActivity::class.java)
+                intent.putExtra("path", listVideo[position].videoPath)
+                startActivityForResult(intent, CODE_CHOICE)
+            }
         }
 
     }
+    private fun startRecord(){
+        var intent=Intent()
+        intent.setAction(MediaStore.ACTION_VIDEO_CAPTURE)
+        intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1)
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, VideoRecordHelper.duration);
+        startActivityForResult(intent, CODE_RECORD)
+    }
+
     private fun getVideoList():MutableList<VideoBean>{
         val list= mutableListOf<VideoBean>()
         //把录像按钮添加到第一个
-        list.add(VideoBean(0,"",""))
+        list.add(VideoBean(0, ""))
 
-        val thumpColumns= arrayOf(MediaStore.Video.Thumbnails.DATA, MediaStore.Video.Thumbnails.VIDEO_ID)
-
-        val media= arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.DATA, MediaStore.Video.Media.DURATION)
-
-        val cursor=contentResolver.query(
-            MediaStore.Video.Media
-            .EXTERNAL_CONTENT_URI, media, null, null, null)
-        cursor?.let {
-            while (it.moveToNext()){
-                val id = it.getInt(it
-                    .getColumnIndex(MediaStore.Video.Media._ID))
-                val thumbCursor=contentResolver.query(
-                    MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, thumpColumns, MediaStore.Video.Thumbnails.VIDEO_ID
-                        + "=" + id,null,null)
-                if (thumbCursor!!.moveToFirst()){
-                    list.add(
-                        VideoBean(it.getInt(it.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)),
-                            thumbCursor.getString(thumbCursor
-                            .getColumnIndex(MediaStore.Video.Thumbnails.DATA)),
-                            it.getString(it.getColumnIndexOrThrow(
-                                MediaStore.Video.Media
-                                    .DATA))
-                        )
-                    )
-                }
-            }
+        val cursor: Cursor? = contentResolver.query(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            null,
+            null,
+            null,
+            null
+        )
+        while (cursor!!.moveToNext()) {
+            val vdPath: String = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA))
+            list.add(VideoBean(1,vdPath))
         }
         return list
     }
 
+    private fun showLoading(){
+        findViewById<View>(R.id.v_compress).visibility=View.VISIBLE
+        findViewById<View>(R.id.pg).visibility=View.VISIBLE
+        findViewById<View>(R.id.tv_compress).visibility=View.VISIBLE
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            when(requestCode){
+                CODE_CHOICE -> {
+
+                    data?.getStringExtra("path")?.let {
+                        startCompress(it)
+                    }
+                }
+                CODE_RECORD -> {
+                    data?.data?.let {
+                        startCompress(FileUtil.getRealPath(this,it))
+                    }
+                }
+            }
+        }
+
+    }
+
+
+
+    private fun startCompress(path:String){
+        val dir=cacheDir
+        val sp="/storage/emulated/0/DCIM/Camera/VID_20210523_155521.mp4".split("/")
+        val fileName="${dir}/compress_${sp[sp.size-1]}"
+        showLoading()
+        VideoCompress.compressVideoLow(
+            path,
+            fileName,
+            object : VideoCompress.CompressListener {
+                override fun onStart() {
+
+                }
+
+                override fun onSuccess() {
+                    VideoRecordHelper.videoChoiceCallBack?.let {
+                        it.onChoice(fileName)
+                        finish()
+                    }
+
+                }
+
+                override fun onFail() {
+                    VideoRecordHelper.videoChoiceCallBack?.let {
+                        it.onChoice(path)
+                        finish()
+                    }
+
+                }
+
+                override fun onProgress(percent: Float) {
+
+                }
+            })
+    }
+
+
+    //权限申请回调
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String?>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            PermissionUtils.PERMISSION_REQUEST_CODE -> if (permissionUtils!!.isAgreePermission(
+                    grantResults
+                )
+            ) {
+                initData()
+            } else {
+                finish()
+            }
+            else -> {
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        VideoRecordHelper.videoChoiceCallBack=null
+    }
 }

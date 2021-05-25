@@ -10,6 +10,11 @@
     <application>
 
         <activity android:name=".ui.VideoListActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:screenOrientation="portrait"
+            />
+        <activity android:name=".ui.VideoPlayActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
             android:screenOrientation="portrait"
             />
     </application>
