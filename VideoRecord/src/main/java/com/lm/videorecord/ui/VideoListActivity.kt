@@ -169,6 +169,7 @@ class VideoListActivity:AppCompatActivity() {
 
                 }
 
+
                 override fun onProgress(percent: Float) {
                     Log.d("lm", "onProgress:${percent}")
                 }
