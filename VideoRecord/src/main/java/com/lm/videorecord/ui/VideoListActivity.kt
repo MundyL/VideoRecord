@@ -40,6 +40,7 @@ class VideoListActivity:AppCompatActivity() {
         Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
+
     private var permissionUtils: PermissionUtils? = null
     private lateinit var rv:RecyclerView
     private lateinit var ivBack:ImageView
