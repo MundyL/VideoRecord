@@ -142,7 +142,7 @@ class VideoListActivity:AppCompatActivity() {
 
     private fun startCompress(path:String){
         val dir=cacheDir
-        val sp="/storage/emulated/0/DCIM/Camera/VID_20210523_155521.mp4".split("/")
+        val sp=path.split("/")
         val fileName="${dir}/compress_${sp[sp.size-1]}"
         showLoading()
         VideoCompress.compressVideoLow(
@@ -170,7 +170,7 @@ class VideoListActivity:AppCompatActivity() {
                 }
 
                 override fun onProgress(percent: Float) {
-
+                    Log.d("lm", "onProgress:${percent}")
                 }
             })
     }
