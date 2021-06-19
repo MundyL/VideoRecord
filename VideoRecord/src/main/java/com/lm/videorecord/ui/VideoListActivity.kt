@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -47,11 +48,13 @@ class VideoListActivity:AppCompatActivity() {
     private var listVideo= mutableListOf<VideoBean>()
     private lateinit var adapter:VideoAdapter
     private lateinit var progressBar: ProgressBar
+    private lateinit var tvProgress:TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_vr_video_list)
         rv=findViewById(R.id.rv)
+        tvProgress=findViewById(R.id.tv_progress)
         ivBack=findViewById(R.id.iv_back)
         ivBack.setOnClickListener {
             finish()
@@ -117,6 +120,7 @@ class VideoListActivity:AppCompatActivity() {
         findViewById<View>(R.id.v_compress).visibility=View.VISIBLE
         findViewById<View>(R.id.pg).visibility=View.VISIBLE
         findViewById<View>(R.id.tv_compress).visibility=View.VISIBLE
+        tvProgress.visibility=View.VISIBLE
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -173,6 +177,9 @@ class VideoListActivity:AppCompatActivity() {
 
                 override fun onProgress(percent: Float) {
                     Log.d("lm", "onProgress:${percent}")
+                    runOnUiThread {
+                        tvProgress.text="${percent.toInt()}%"
+                    }
                 }
             })
     }
